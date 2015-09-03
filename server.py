@@ -5,9 +5,9 @@ def broadcast(message, sender): #sends data, taken from a website, but so simple
             try:
                 socket.send(message)
             except: #cannot send, drop client
-                print('{} disconnected'.format(socket))
-                socket.close()
-                connections.remove(socket)
+                print('{} dropped'.format(socket))
+                #socket.close()
+                #connections.remove(socket)
 
 connections = []
 buffer = 4096
@@ -22,13 +22,14 @@ def handle_connect():
     while True:
         print('waiting')
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(('0.0.0.0', 5000))
+        s.bind(('127.0.0.1', 5000))
         s.listen(1)
         conn, addr = s.accept() #wait for a connection
-        connections.append(conn) #add connection to connections
+        connections[addr] = conn #add connection to connections
         broadcast('client connected on: {}'.format(addr),server) #tell all users that message has been sent
         print('client connected on: {}'.format(addr),server)
         threading.Thread(target=handle_recv(conn)).start()
+        print('test')
     
 def handle_recv(conn):
     print('user handled')
@@ -38,11 +39,11 @@ def handle_recv(conn):
             data = conn.recv(buffer)
             print(data)
             if data:
-                broadcast(data)
+                broadcast(data, conn)
         except:
             print('{} disconnected'.format(conn))
             conn.close()
             connections.remove(conn)
+            break
 threading.Thread(target=handle_connect).start()
-        
-        
+
